@@ -3,12 +3,13 @@ An interactive drawing program that can read different file format to draw
 lines of different color and thickness using the turle Python library.
 
 ## Supported file types:
-### .CSV
+### .CSV (meant for monochrome use only)
 List of valid commands:
-- `LXYZ` (move forward by XYZ)
-- `AXYZ` (rotate by an XYZ in degree or radians depending on import settings)
+- `FWXYZ` (move forward by XYZ)
+- `LRXYZ` (rotate left by an XYZ in degree or radians depending on import settings)
+- `RRXYZ` (rotate right by an XYZ in degree or radians depending on import settings)
 
-### .TCODE (aka Turtle Code)
+### .TCODE (aka Turtle Code, unlocks the full potential of the program)
 List of valid commands:
 - `FORWARD XYZ` (move forward by XYZ)
 - `BACKWARD XYZ` (move backward by XYZ)
