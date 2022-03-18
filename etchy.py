@@ -43,11 +43,11 @@ def parse_tcode_command(command):
         case ["ROTATE_RD", angle]:
             degrees()
             right(float(angle))
-        case ["COLOR", color]:
+        case ["COLOR", *color]:
             if color[0] == "#":
                 pencolor(color)
             else:
-                r, g, b = [int(c.strip()) for c in color.split(",")]
+                r, g, b = [int(c.strip(',')) for c in color]
                 pencolor((r, g, b))
         case ["THICKNESS", thickness]:
             pensize(float(thickness))
@@ -102,7 +102,8 @@ def etchy_cli(inputfile, parser):
     
     if commands != []:
         # Parse and execute every command using correct parser
-        color("black", "blue")
+        #color("black", "blue")
+        colormode(255)
         begin_fill()
         for command in commands:
             execute_command(command, parser)
