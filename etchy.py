@@ -4,18 +4,60 @@ import csv
 import click
 import os
 
-
 def parse_csv_command(command):
-    pass
+    match [command[0:2],command[2:]]:
+        case ["FW", distance]:
+            forward(float(distance))
+        case ["LR", angle]:
+            left(float(angle))
+        case ["RR", angle]:
+            right(float(angle))
 
 def parse_tcode_command(command):
-    pass
+    match command.split():
+        case ["FORWARD", distance]:
+            forward(float(distance))
+        case ["BACKWARD", distance]:
+            backward(float(distance))
+        case ["LEFT", distance]:
+            # Strafe left (turn left by 90˚ left than move forward and then turn back 90˚ to the right)
+            degrees()
+            left(90)
+            forward(float(distance))
+            right(90)
+        case ["RIGHT", distance]:
+            # Strafe right (turn right by 90˚ than move forward and then turn back 90˚ to the left)
+            degrees()
+            right(90)
+            forward(float(distance))
+            left(90)
+        case ["ROTATE_L", angle]:
+            radians()
+            left(float(angle))
+        case ["ROTATE_R", angle]:
+            radians()
+            right(float(angle))
+        case ["ROTATE_LD", angle]:
+            degrees()
+            left(float(angle))
+        case ["ROTATE_RD", angle]:
+            degrees()
+            right(float(angle))
+        case ["COLOR", color]:
+            if color[0] == "#":
+                pencolor(color)
+            else:
+                r, g, b = [int(c.strip()) for c in color.split(",")]
+                pencolor((r, g, b))
+        case ["THICKNESS", thickness]:
+            pensize(float(thickness))
 
 def execute_command(command, parser):
-    if parser == "CSV":
-        command, argument = parse_csv_command()
-    elif parser == "TCODE":
-        command, argument = parse_tcode_command()
+    match parser:
+        case "CSV":
+            parse_csv_command(command)
+        case "TCODE":
+            parse_tcode_command(command)
 
 
 @click.command()
@@ -34,27 +76,41 @@ def etchy_cli(inputfile, parser):
 
 
     commands = []
+    parsed_commands = []
 
-    if parser == "CSV":
-        with open(inputfile, newline='') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            for row in spamreader:
-                for command in row:
-                    commands.append(command)
-
-        color('red', 'yellow')
+    match parser:
+        case "CSV":
+            with open(inputfile, newline='') as csvfile:
+                # Automatically detect the formatting of the CSV file
+                dialect = csv.Sniffer().sniff(csvfile.read(1024))
+                #Check that the found delimiter makes sense:
+                if dialect.delimiter not in ",;/: \r\n":
+                    # Most likely the file is a single column with no delimiter
+                    dialect.delimiter = "\n"
+                # Seek back to the beginning of the file
+                csvfile.seek(0)
+                # Read the entire CSV file and split it in it's individual command
+                spamreader = csv.reader(csvfile, dialect)
+                for row in spamreader:
+                    for command in row:
+                        commands.append(command)
+        case "TCODE":
+            with open(inputfile) as tcodefile:
+                for command in tcodefile:
+                    commands.append(command.strip())
+            click.echo(click.style('WIP FEATURE!', fg='red'))
+    
+    if commands != []:
+        # Parse and execute every command using correct parser
+        color("black", "blue")
         begin_fill()
         for command in commands:
-            if command[0] == "L":
-                forward(int(command[1:]))
-            elif command[0] == "A":
-                left(int(command[1:]))
-            else:
-                continue
+            execute_command(command, parser)
         end_fill()
         done()
-    else:
-        click.echo(click.style('NOT IMPLEMENTED! WIP FEATURE!', fg='red'))
 
 if __name__ == "__main__":
+    speed(1)
+    #tracer(10, 0)
+    screensize(800, 600)
     etchy_cli()
