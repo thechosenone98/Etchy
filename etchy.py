@@ -1,6 +1,7 @@
 from email.policy import default
 from turtle import *
 import csv
+from webbrowser import get
 import click
 import os
 
@@ -43,6 +44,16 @@ def parse_tcode_command(command):
         case ["ROTATE_RD", angle]:
             degrees()
             right(float(angle))
+        case ["SETHEADING", angle]:
+            radians()
+            setheading(float(angle))
+        case ["SETHEADING_D", angle]:
+            degrees()
+            setheading(float(angle))
+        case ["PENUP"]:
+            penup()
+        case ["PENDOWN"]:
+            pendown()
         case ["COLOR", *color]:
             if color[0] == "#":
                 pencolor(color)
@@ -51,6 +62,21 @@ def parse_tcode_command(command):
                 pencolor((r, g, b))
         case ["THICKNESS", thickness]:
             pensize(float(thickness))
+    # Resize canvas if turtle went off screen
+    x, y = pos()
+    w, h = screensize()
+    sw = getscreen().getcanvas().winfo_width()
+    sh = getscreen().getcanvas().winfo_height()
+    canvas = getscreen().getcanvas()
+    if not (-(w/2 - sw/2) < x < (w/2 - sw/2)):
+        w *= 2
+        screensize(w, h)
+    if not (-(h/2 - sh/2) < y < (h/2 - sh/2)):
+        h *= 2
+        screensize(w, h)
+    # Keep the turtle in the center of the screen at all time
+    canvas.xview_moveto((w/2 + x - sw/2)/w)
+    canvas.yview_moveto((h/2 - y - sh/2)/h)
 
 def execute_command(command, parser):
     match parser:
@@ -62,9 +88,10 @@ def execute_command(command, parser):
 
 @click.command()
 @click.option('--inputfile', help='Name of the file to use as an input.')
+@click.option('--outputfile', help='Name of the file to use as the output.')
 @click.option('--parser', default="CSV", prompt='Which parser do you want to use on the file CSV/TCODE?',
               help='Selects a parser between CSV and TCODE to decode the instruction in the file provided')
-def etchy_cli(inputfile, parser):
+def etchy_cli(inputfile, outputfile, parser):
     """CLI interface for Etchy"""
     if not os.path.isfile(inputfile):
         click.echo(click.style('File not found!', fg='red'))
@@ -104,14 +131,16 @@ def etchy_cli(inputfile, parser):
         # Parse and execute every command using correct parser
         #color("black", "blue")
         colormode(255)
-        begin_fill()
+        #begin_fill()
         for command in commands:
             execute_command(command, parser)
         end_fill()
         done()
+        if outputfile is not None:
+            getscreen().getcanvas().postscript(file=outputfile, pagewidth=100000, pageheight=100000, height=100000, width=100000)
 
 if __name__ == "__main__":
-    speed(1)
-    #tracer(10, 0)
-    screensize(800, 600)
+    speed(0)
+    tracer(5, 0)
+    screensize(600, 600)
     etchy_cli()

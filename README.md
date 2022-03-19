@@ -21,3 +21,7 @@ List of valid commands:
 - `ROTATE_RD XYZ` (rotate right by XYZ degrees)
 - `COLOR R,G,B` (set the color of the streak in RGB8 mode)
 - `THICKNESS XYZ` (set the thickness of the streak to XYZ pixels)
+- `PENUP` (lift the pen up to stop drawing while moving)
+- `PENDOWN` (puts the pen down to resume drawing while moving)
+- `SETHEADING XYZ` (set the heading of the turtle to XYZ radians)
+- `SETHEADING_D XYZ` (set heading of the turtle to XYZ degrees)
