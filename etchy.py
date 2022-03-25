@@ -1,11 +1,11 @@
-from email.policy import default
+from math import ceil
 from turtle import Turtle, Screen
-from PIL import ImageGrab
 import csv
-from webbrowser import get
 import click
 import os
 from tqdm import tqdm
+
+SAFETY_MARGIN = 50
 
 def parse_csv_command(turtle, command):
     match [command[0:2],command[2:]]:
@@ -71,24 +71,23 @@ def execute_command(turtle : Turtle, screen : Screen, command, parser):
             parse_csv_command(turtle, command)
         case "TCODE":
             parse_tcode_command(turtle, command)
-    # Resize canvas if turtle went off screen
+    # Resize canvas if turtle went off screen (keep it square for later EPS export, breaks otherwise)
     x, y = turtle.pos()
-
     w, h = screen.screensize()
     sw = screen.getcanvas().winfo_width()
     sh = screen.getcanvas().winfo_height()
     canvas = screen.getcanvas()
-    if not (-(w/2 - sw/2) < x < (w/2 - sw/2)):
+    if not (-(w/2 - sw/2) < x//2 < (w/2 - sw/2)):
         w *= 2
         h *= 2
         screen.screensize(w, h)
-    if not (-(h/2 - sh/2) < y < (h/2 - sh/2)):
+    if not (-(h/2 - sh/2) < y//2 < (h/2 - sh/2)):
         w *= 2
         h *= 2
         screen.screensize(w, h)
     # Keep the turtle in the center of the screen at all time 
-    # (something fucked up happens to turtle coordinate and they are double what they should be)
-    # (so i divide them by 2 and IT JUST WORKS OK.)
+    # (something fucked up happens to the turtle coordinates and they are double what they should be)
+    # (so I divide them by 2 and IT JUST WORKS OK.)
     canvas.xview_moveto(((x//2)+w//2 - sw/2)/w)
     canvas.yview_moveto((-(y//2)+h//2 - sh/2)/h)
     
@@ -134,23 +133,53 @@ def etchy_cli(inputfile, outputfile, parser):
                 for command in tcodefile:
                     commands.append(command.strip())
     
+    # Keep track of where etchy has gone to create correct bounding box later
+    bbox_detail = {"blx": 0, "bly": 0, "trx": 0, "try": 0}
+    # FOR TESTING ONLY, CONSUMES HUGE AMOUNT OF MEMORY FOR NOTHING
+    x_pos = []
+    y_pos = []
     if commands != []:
         # Parse and execute every command using correct parser
         etchy.screen.colormode(255)
         for command in tqdm(commands):
             execute_command(etchy.turtle, etchy.screen, command, parser)
+            x, y = etchy.turtle.pos()
+            x_pos.append(x)
+            y_pos.append(y)
+            if x//2 < bbox_detail["blx"]:
+                bbox_detail["blx"] = x//2
+            elif x//2 > bbox_detail["trx"]:
+                bbox_detail["trx"] = x//2
+            if y//2 < bbox_detail["bly"]:
+                bbox_detail["bly"] = y//2
+            elif y//2 > bbox_detail["try"]:
+                bbox_detail["try"] = y//2
         if outputfile is not None:
             # Get final canvas dimension
             w, h = etchy.screen.screensize()
             click.echo(f"W:{w} H:{h}")
             canvas = etchy.screen.getcanvas()
-            x = -w//2
-            y = -h//2
+            x = -w/2
+            y = -h/2
             click.echo(f"Output Start W: {x} H:{y}")
             click.echo(f"Output End   W: {x+w} H:{y+h}")
-            etchy.screen.update()
-            canvas.postscript(file=outputfile, x=x, y=y, width=w, height=h)
-    etchy.screen.mainloop()
+            canvas_t = etchy.turtle.getscreen().getcanvas()
+            etchy.turtle.getscreen().update()
+            #canvas_t.postscript(file=outputfile, x=-w//2, y=-h//2, width=w, height=h, pageheight=h, pagewidth=w)
+            x_min, y_min, x_max, y_max = min(x_pos)/2, min(y_pos)/2, max(x_pos)/2, max(y_pos)/2
+            x_min_r, y_min_r, x_max_r, y_max_r = [v * 0.05 for v in [x_min, y_min, x_max, y_max]]
+            canvas_t.postscript(file=outputfile, x=x, y=y, width=w, height=h)
+            print(bbox_detail["trx"]-bbox_detail["blx"])
+            print(bbox_detail["try"]-bbox_detail["bly"])
+            click.echo(f"BBOX NOT SCALED: {min(x_pos)//2:.2f} {min(y_pos)//2:.2f} {max(x_pos)//2:.2f} {max(y_pos)//2:.2f}")
+            click.echo(f"BBOX : {bbox_detail['blx'] * 0.05:.2f} {bbox_detail['bly'] * 0.05:.2f} {bbox_detail['trx'] * 0.05:.2f} {bbox_detail['try'] * 0.05:.2f}")
+            # Write bbox to an output file for later use with pdfcrop
+            bbox_str = f"{ceil((w*0.05)/2+x_min_r)-SAFETY_MARGIN} {ceil((h*0.05)/2+y_min_r)-SAFETY_MARGIN} {ceil((w*0.05)/2+x_min_r + (x_max_r - x_min_r))+SAFETY_MARGIN} {ceil((h*0.05)/2+y_min_r + (y_max_r - y_min_r))+SAFETY_MARGIN}"
+            with open("bbox_tmp.txt", "w") as f:
+                f.write(bbox_str)
+            with open("bbox_list.txt", "a") as f:
+                f.write(bbox_str + '\n')
+    #etchy.screen.mainloop()
 
 
 class Etchy():
