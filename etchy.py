@@ -158,23 +158,15 @@ def etchy_cli(inputfile, outputfile, parser):
             # Get final canvas dimension
             w, h = etchy.screen.screensize()
             click.echo(f"W:{w} H:{h}")
-            canvas = etchy.screen.getcanvas()
             x = -w/2
             y = -h/2
-            click.echo(f"Output Start W: {x} H:{y}")
-            click.echo(f"Output End   W: {x+w} H:{y+h}")
             canvas_t = etchy.turtle.getscreen().getcanvas()
             etchy.turtle.getscreen().update()
-            #canvas_t.postscript(file=outputfile, x=-w//2, y=-h//2, width=w, height=h, pageheight=h, pagewidth=w)
             x_min, y_min, x_max, y_max = min(x_pos)/2, min(y_pos)/2, max(x_pos)/2, max(y_pos)/2
-            x_min_r, y_min_r, x_max_r, y_max_r = [v * 0.05 for v in [x_min, y_min, x_max, y_max]]
+            x_min_r, y_min_r, x_max_r, y_max_r = [v * 0.2 for v in [x_min, y_min, x_max, y_max]]
             canvas_t.postscript(file=outputfile, x=x, y=y, width=w, height=h)
-            print(bbox_detail["trx"]-bbox_detail["blx"])
-            print(bbox_detail["try"]-bbox_detail["bly"])
-            click.echo(f"BBOX NOT SCALED: {min(x_pos)//2:.2f} {min(y_pos)//2:.2f} {max(x_pos)//2:.2f} {max(y_pos)//2:.2f}")
-            click.echo(f"BBOX : {bbox_detail['blx'] * 0.05:.2f} {bbox_detail['bly'] * 0.05:.2f} {bbox_detail['trx'] * 0.05:.2f} {bbox_detail['try'] * 0.05:.2f}")
             # Write bbox to an output file for later use with pdfcrop
-            bbox_str = f"{ceil((w*0.05)/2+x_min_r)-SAFETY_MARGIN} {ceil((h*0.05)/2+y_min_r)-SAFETY_MARGIN} {ceil((w*0.05)/2+x_min_r + (x_max_r - x_min_r))+SAFETY_MARGIN} {ceil((h*0.05)/2+y_min_r + (y_max_r - y_min_r))+SAFETY_MARGIN}"
+            bbox_str = f"{ceil((w*0.2)/2+x_min_r)-SAFETY_MARGIN} {ceil((h*0.2)/2+y_min_r)-SAFETY_MARGIN} {ceil((w*0.2)/2+x_min_r + (x_max_r - x_min_r))+SAFETY_MARGIN} {ceil((h*0.2)/2+y_min_r + (y_max_r - y_min_r))+SAFETY_MARGIN}"
             with open("bbox_tmp.txt", "w") as f:
                 f.write(bbox_str)
             with open("bbox_list.txt", "a") as f:
@@ -190,7 +182,7 @@ class Etchy():
         self.screen.setworldcoordinates(-580, -580, 580, 580)
         self.turtle = Turtle()
         self.turtle.speed(0)
-        self.screen.tracer(1000, 0)
+        self.screen.tracer(10000, 0)
         # Set up some control for the turtle window
         self.canvas = self.screen.getcanvas()
         self.canvas.bind("<MouseWheel>", self.zoom_canvas)
