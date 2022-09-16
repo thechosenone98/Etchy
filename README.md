@@ -26,5 +26,8 @@ List of valid commands:
 - `SETHEADING XYZ` (set the heading of the turtle to XYZ radians)
 - `SETHEADING_D XYZ` (set heading of the turtle to XYZ degrees)
 
+### Usage
+- `python3 etchy.py --inputfile INPUT_FILENAME --outputfile OUTPUT_FILENAME [--parser]` to run the program. The default parser is CSV.
+
 ### Example of what can be done
-  <a href="https://github.com/thechosenone98"><img src="https://github.com/thechosenone98/blob/main/animation.gif" alt="Using the decimal of a reciprocal of a number to vary rotation"></a>
+  <a href="https://github.com/thechosenone98"><img src="https://github.com/thechosenone98/Etchy/blob/master/animation.gif" alt="Using the decimal of a reciprocal of a number to vary rotation"></a>
