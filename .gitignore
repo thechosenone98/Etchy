@@ -1,0 +1,8 @@
+*.txt
+*.tcode
+*.eps
+*.pdf
+/*/*
+*.csv
+increment_args.sh
+test.sh

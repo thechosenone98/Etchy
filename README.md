@@ -1,6 +1,6 @@
 # Etchy
-An interactive drawing program that can read different file format to draw
-lines of different color and thickness using the turle Python library.
+An instruction based drawing program that can read different file format to draw
+lines of different color and thickness using the Python turtle library.
 
 ## Supported file types:
 ### .CSV (meant for monochrome use only)
@@ -25,3 +25,6 @@ List of valid commands:
 - `PENDOWN` (puts the pen down to resume drawing while moving)
 - `SETHEADING XYZ` (set the heading of the turtle to XYZ radians)
 - `SETHEADING_D XYZ` (set heading of the turtle to XYZ degrees)
+
+### Example of what can be done
+  <a href="https://github.com/thechosenone98"><img src="https://github.com/thechosenone98/blob/main/animation.gif" alt="Using the decimal of a reciprocal of a number to vary rotation"></a>
